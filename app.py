@@ -15,7 +15,7 @@ import pymunk
 
 from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock
 from grid import Stack, Grid, SelectableGrid, ItemGridView
-from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem
+from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem, FOOD_STRENGTH
 from player import Player
 from dropped_item import DroppedItem
 from crafting import GridCrafter, CraftingWindow
@@ -92,7 +92,8 @@ def create_item(*item_id):
                 1] in TOOL_DURABILITIES:
             return ToolItem(f"{item_id[0]}_{item_id[1]}", item_id[1],
                             TOOL_DURABILITIES[item_id[0]])
-
+        elif item_id[0] == "food":
+            return FoodItem(item_id[1], FOOD_STRENGTH[item_id[1]])
     elif len(item_id) == 1:
 
         item_type = item_id[0]
@@ -392,7 +393,7 @@ class Ninedraft:
             # Task 1.2 Mouse Controls: Remove the block from the world & get its drops
             self._world.remove_block(block)
 
-            drops = block.get_drops()
+            drops = block.get_drops(random.random(), True)
             if not drops:
                 return
 

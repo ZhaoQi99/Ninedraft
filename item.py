@@ -16,7 +16,8 @@ from core import EffectID
 class Item:
     """A conceptual, non-physical item in the game"""
 
-    def __init__(self, id_: str, max_stack: int = 64, attack_range: float = 10):
+    def __init__(self, id_: str, max_stack: int = 64,
+                 attack_range: float = 10):
         """Constructor
 
         Parameters:
@@ -36,7 +37,8 @@ class Item:
         return f"{self.__class__.__name__}({self._id!r})"
 
     def can_attack(self):
-        raise NotImplementedError("An Item subclass must implement a can_attack method")
+        raise NotImplementedError(
+            "An Item subclass must implement a can_attack method")
 
     def attack(self, successful) -> EffectID:
         """Records an attack against a thing in the world
@@ -48,7 +50,8 @@ class Item:
                       - effect_type is the type of the effect ('item', 'block', etc.)
                       - effect_sub_id is the unique identifier for an effect of a particular type
         """
-        raise NotImplementedError("An Item subclass must implement an attack method")
+        raise NotImplementedError(
+            "An Item subclass must implement an attack method")
 
     def place(self) -> EffectID:
         """Places the item into the world
@@ -60,7 +63,8 @@ class Item:
                       - effect_type is the type of the effect ('item', 'block', etc.)
                       - effect_sub_id is the unique identifier for an effect of a particular type
         """
-        raise NotImplementedError("An Item subclass must implement a place method")
+        raise NotImplementedError(
+            "An Item subclass must implement a place method")
 
     def get_max_stack_size(self):
         """(int) Returns the maximum stack size of this item in the inventory/hotbar
@@ -80,11 +84,13 @@ class Item:
     def get_durability(self):
         """(float) Returns the item's durability (effectively its health). For items that cannot
         attack, this value is irrelevant"""
-        raise NotImplementedError("An Item subclass must implement a get_durability method")
+        raise NotImplementedError(
+            "An Item subclass must implement a get_durability method")
 
     def get_max_durability(self):
         """(float) Returns the item's maximum durability"""
-        raise NotImplementedError("An Item subclass must implement a get_max_durability method")
+        raise NotImplementedError(
+            "An Item subclass must implement a get_max_durability method")
 
 
 class HandItem(Item):
@@ -150,7 +156,7 @@ class BlockItem(Item):
                       - effect_sub_id is the unique identifier for an effect of a particular type
         """
 
-        return [('block', (self._id,))]
+        return [('block', (self._id, ))]
 
     # The following methods have not been documented, as their purpose is simple
     # and their docstrings are inherited from Item's methods
@@ -164,6 +170,41 @@ class BlockItem(Item):
         pass
 
 
+class FoodItem(Item):
+    def __init__(self, id_, strength):
+        super().__init__(id_, max_stack=4)
+        self.strength = strength
+
+    def get_strength(self):
+        return self.strength
+
+    def can_attack(self):
+        return True
+
+    def place(self):
+        return [('effect', (self._id, ))]
+
+
+class ToolItem(Item):
+    def __init__(self, id_, tool_type, durability):
+        super().__init__(id_, max_stack=1)
+        self.tool_type = tool_type
+        self.durability = durability
+
+    def can_attack(self):
+        return bool(self.durability)
+
+    def get_type(self):
+        return self.tool_type
+
+    def get_durability(self):
+        return self.durability
+
+    def attack(self, successful):
+        if not successful:
+            self.durability -= 1
+
+
 # Default mapping of resource to durability for tools crafted from a given resource
 TOOL_DURABILITIES = {
     "wood": 60,
@@ -175,3 +216,5 @@ TOOL_DURABILITIES = {
 
 # Types of tools that can be made from a resource (material)
 MATERIAL_TOOL_TYPES = {"axe", "shovel", "hoe", "pickaxe", "sword"}
+
+FOOD_STRENGTH = {"apple": 12}

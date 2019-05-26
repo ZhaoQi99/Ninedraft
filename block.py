@@ -25,7 +25,6 @@ BREAK_TABLES = {
         "diamond_shovel": (.1, True),
         "golden_shovel": (.1, True)
     },
-
     "wood": {
         "hand": (3, True),
         "wood_axe": (1.5, True),
@@ -34,7 +33,6 @@ BREAK_TABLES = {
         "diamond_axe": (.4, True),
         "golden_axe": (.25, True)
     },
-
     "stone": {
         "hand": (7.5, False),
         "wood_pickaxe": (1.15, True),
@@ -51,8 +49,7 @@ class Block(PhysicalThing):
     # The unique identifier for this block
     _id = None
 
-    _break_table = {
-    }
+    _break_table = {}
 
     def __init__(self, hitpoints=20):
         """Constructor
@@ -65,10 +62,12 @@ class Block(PhysicalThing):
         self._hitpoints = self._max_hitpoints = hitpoints
 
         if self._id is None:
-            raise NotImplementedError("A Block subclass must define an _id attribute")
+            raise NotImplementedError(
+                "A Block subclass must define an _id attribute")
 
         if not self._break_table:
-            raise NotImplementedError("A Block subclass must define an _break_table attribute")
+            raise NotImplementedError(
+                "A Block subclass must define an _break_table attribute")
 
     def get_id(self) -> str:
         """(str) Returns the unique id of this block"""
@@ -107,7 +106,7 @@ class Block(PhysicalThing):
         Pre-conditions:
             0 <= luck < 1
         """
-        return [('item', (self._id,))]
+        return [('item', (self._id, ))]
 
     def get_damage_by_tool(self, item):
         """(float) Returns the amount of damage caused by a given item (usually a tool)
@@ -144,7 +143,9 @@ class Block(PhysicalThing):
         damage = 10 / time
         self._hitpoints -= damage
 
-        print(f"Did {damage} damage with {effective_item} (correct? {correct_item})")
+        print(
+            f"Did {damage} damage with {effective_item} (correct? {correct_item})"
+        )
 
         return correct_item, self.is_mined()
 
@@ -180,7 +181,7 @@ class LeafBlock(Block):
         See Block.get_drops for parameters & return"""
         if not correct_item_used:
             if luck < 0.3:
-                return [('item', ('apple',))]
+                return [('item', ('apple', ))]
 
     def __repr__(self):
         return f"LeafBlock()"
@@ -209,8 +210,11 @@ class ResourceBlock(Block):
         See Block.get_drops for parameters & return"""
 
         if correct_item_used:
+            #Todo add more
+            ret = [('item', (self._id, ))] * 5
+            ret.append(('item', ("food", "apple")))
             # Drop 5 of itself in item form
-            return [('item', (self._id,))] * 5
+            return ret
 
     # The following methods have not been commented, and their comments
     # are inherited from Block
