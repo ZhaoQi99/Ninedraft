@@ -368,8 +368,8 @@ class Ninedraft:
 
     def _jump(self):
         velocity = self._player.get_velocity()
-        # Task 1.2: Update the player's velocity here
-        # ...
+        # Task 1.4: Update the player's velocity here
+        self._player.set_velocity((velocity[0] * 0.8, velocity[1] - 200))
 
     def mine_block(self, block, x, y):
         luck = random.random()
