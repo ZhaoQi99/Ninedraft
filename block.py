@@ -261,3 +261,19 @@ class TrickCandleFlameBlock(Block):
 
     def __repr__(self):
         return f"TrickCandleFlameBlock({self._i!r})"
+
+
+class CraftingTableBlock(Block):
+    _id = "crafting_table"
+    _break_table = {
+        "hand": (5, True),
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    def use(self):
+        return ('crafting', 'crafting_table')
+
+    def get_drops(self, luck, correct_item_used):
+        return [('item', ('crafting_table', ))]

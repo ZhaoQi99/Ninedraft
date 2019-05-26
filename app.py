@@ -13,7 +13,7 @@ from collections import namedtuple
 from tkinter import simpledialog
 import pymunk
 
-from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock
+from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock,CraftingTableBlock
 from grid import Stack, Grid, SelectableGrid, ItemGridView
 from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem, FOOD_STRENGTH
 from player import Player
@@ -59,6 +59,8 @@ def create_block(*block_id):
             return LeafBlock()
         elif block_id in BREAK_TABLES:
             return ResourceBlock(block_id, BREAK_TABLES[block_id])
+        elif block_id == "crafting_table":
+            return CraftingTableBlock()
 
     elif block_id[0] == 'mayhem':
         return TrickCandleFlameBlock(block_id[1])
@@ -91,7 +93,7 @@ def create_item(*item_id):
         if item_id[0] in MATERIAL_TOOL_TYPES and item_id[
                 1] in TOOL_DURABILITIES:
             return ToolItem(f"{item_id[0]}_{item_id[1]}", item_id[1],
-                            TOOL_DURABILITIES[item_id[0]])
+                            TOOL_DURABILITIES[item_id[1]])
         elif item_id[0] == "food":
             return FoodItem(item_id[1], FOOD_STRENGTH[item_id[1]])
     elif len(item_id) == 1:
@@ -111,6 +113,8 @@ def create_item(*item_id):
             return BlockItem("stone")
         elif item_type == "stick":
             return BlockItem("stick")
+        elif item_type == "crafting_table":
+            return BlockItem("crafting_table")
 
     raise KeyError(f"No item defined for {item_id}")
 
@@ -162,11 +166,56 @@ ITEM_COLOURS = {
     'furnace': 'black',
     'cooked_apple': 'red4'
 }
+# 2x2 Crafting Recipes
+CRAFTING_RECIPES_2x2 = [
+    (((None, 'wood'), (None, 'wood')), Stack(create_item('stick'), 4)),
+    ((('wood', 'wood'), ('wood', 'wood')),
+     Stack(create_item('crafting_table'), 1)),
+]
 
-CRAFTING_RECIPES_2x2 = [(((None, 'wood'), (None, 'wood')),
-                         Stack(create_item('stick'), 4))]
-
-
+# 3x3 Crafting Recipes
+CRAFTING_RECIPES_3x3 = {
+    (
+        (
+            (None, None, None),
+            (None, 'wood', None),
+            (None, 'wood', None)
+        ),
+        Stack(create_item('stick'), 16)
+    ),
+    (
+        (
+            ('wood', 'wood', 'wood'),
+            (None, 'stick', None),
+            (None, 'stick', None)
+        ),
+        Stack(create_item('pickaxe', 'wood'), 1)
+    ),
+    (
+        (
+            ('wood', 'wood', None),
+            ('wood', 'stick', None),
+            (None, 'stick', None)
+        ),
+        Stack(create_item('axe', 'wood'), 1)
+    ),
+    (
+        (
+            (None, 'wood', None),
+            (None, 'stick', None),
+            (None, 'stick', None)
+        ),
+        Stack(create_item('shovel', 'wood'), 1)
+    ),
+    (
+        (
+            (None, 'stone', None),
+            (None, 'stone', None),
+            (None, 'stick', None)
+        ),
+        Stack(create_item('sword', 'wood'), 1)
+    )
+}
 def load_simple_world(world):
     """Loads blocks into a world
 
@@ -457,10 +506,14 @@ class Ninedraft:
 
     def _trigger_crafting(self, craft_type):
         print(f"Crafting with {craft_type}")
-        if craft_type == "basic":
-            crafter = GridCrafter(CRAFTING_RECIPES_2x2)
+        if craft_type in ("basic","crafting_table"):
+            if craft_type =="basic":
+                crafter = GridCrafter(CRAFTING_RECIPES_2x2)
+            elif craft_type =="crafting_table":
+                crafter = GridCrafter(CRAFTING_RECIPES_3x3,rows=3,columns=3)
             self._crafting_window = CraftingWindow(
                 self._master, "Craft", self._hot_bar, self._inventory, crafter)
+        
 
     def run_effect(self, effect):
         if len(effect) == 2:
@@ -488,7 +541,6 @@ class Ninedraft:
 
         x, y = self._target_position
         target = self._world.get_thing(x, y)
-
         if target:
             # use this thing
             print(f'using {target}')
@@ -524,7 +576,6 @@ class Ninedraft:
             drop_category, drop_types = drops[0]
 
             x, y = event.x, event.y
-
             if drop_category == "block":
                 existing_block = self._world.get_block(x, y)
 
