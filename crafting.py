@@ -241,7 +241,8 @@ class GridCrafterView(tk.Frame):
             print(f"Redrawing {stack} at {key}")
             if key == "output":
                 # Task 2.2 Crafting: Draw output cell
-                self._output_view.draw_cell((0, 0), stack, selected == "output")
+                self._output_view.draw_cell((0, 0), stack,
+                                            selected == "output")
             else:
                 # Task 2.2 Crafting: Draw input cells
                 self._input_view.draw_cell(key, stack,
@@ -254,6 +255,7 @@ class GridCrafterView(tk.Frame):
           - key (*) is the key of the cell clicked, etc.
           - mouse_event (tk.MouseEvent) is the original mouse event from tkinter
         """
+        print(event)
         if event not in TK_MOUSE_EVENTS:
             return
         self._input_view.bind_for_id(event, callback)
@@ -340,7 +342,7 @@ class CraftingWindow(tk.Toplevel):
             "<Button-1>", lambda key, e: self._handle_left_click(
                 "crafter", key, e))
         crafter_view.bind_for_id(
-            "<Button-2>", lambda key, e: self._handle_right_click(
+            "<Button-3>", lambda key, e: self._handle_right_click(
                 "crafter", key, e))
 
     def redraw(self):
