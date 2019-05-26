@@ -103,7 +103,10 @@ def create_item(*item_id):
             return BlockItem(item_type)
 
         # Task 1.4 Basic Items: Create wood & stone here
-        # ...
+        elif item_type == "wood":
+            return BlockItem("wood")
+        elif item_type == "stone":
+            return BlockItem("stone")
 
     raise KeyError(f"No item defined for {item_id}")
 
