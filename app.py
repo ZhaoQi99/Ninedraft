@@ -495,4 +495,11 @@ class Ninedraft:
         return False
 
 # Task 1.1 App class: Add a main function to instantiate the GUI here
-# ...
+def main():
+    root = tk.Tk()
+    Ninedraft(root)
+    tk.mainloop()
+
+
+if __name__ == "__main__":
+    main()
