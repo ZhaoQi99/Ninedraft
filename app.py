@@ -15,7 +15,7 @@ import pymunk
 
 from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock
 from grid import Stack, Grid, SelectableGrid, ItemGridView
-from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES
+from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem
 from player import Player
 from dropped_item import DroppedItem
 from crafting import GridCrafter, CraftingWindow
@@ -90,7 +90,8 @@ def create_item(*item_id):
 
         if item_id[0] in MATERIAL_TOOL_TYPES and item_id[
                 1] in TOOL_DURABILITIES:
-            raise NotImplementedError("Tool creation is not yet handled")
+            return ToolItem(f"{item_id[0]}_{item_id[1]}", item_id[1],
+                            TOOL_DURABILITIES[item_id[0]])
 
     elif len(item_id) == 1:
 
