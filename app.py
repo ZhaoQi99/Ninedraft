@@ -109,7 +109,30 @@ def create_item(*item_id):
 
 
 # Task 1.3: Implement StatusView class here
-# ...
+class StatusView(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.health = tk.DoubleVar()
+        self.food = tk.DoubleVar()
+        tk.Label(
+            self,
+            text="health:",
+            height=2,
+        ).pack(side=tk.LEFT)
+        tk.Label(
+            self,
+            textvariable=self.health,
+            height=2,
+        ).pack(side=tk.LEFT)
+        tk.Label(self, textvariable=self.food, height=2).pack(side=tk.RIGHT)
+        tk.Label(self, text="food:", height=2).pack(side=tk.RIGHT)
+
+    def set_health(self, health):
+        self.health.set(int(health * 2) / 2)
+
+    def set_food(self, food):
+        self.food.set(int(food * 2) / 2)
+
 
 BLOCK_COLOURS = {
     'diamond': 'blue',
@@ -243,7 +266,10 @@ class Ninedraft:
         self._master.bind("<3>", self._right_click)
 
         # Task 1.3: Create instance of StatusView here
-        # ...
+        self.status_view = StatusView(self._master)
+        self.status_view.pack()
+        self.status_view.set_food(self._player.get_food())
+        self.status_view.set_health(self._player.get_health())
 
         self._hot_bar_view = ItemGridView(master, self._hot_bar.get_size())
         self._hot_bar_view.pack(side=tk.TOP, fill=tk.X)
@@ -291,7 +317,8 @@ class Ninedraft:
             self._view.hide_target()
 
         # Task 1.3 StatusView: Update StatusView values here
-        # ...
+        self.status_view.set_food(self._player.get_food())
+        self.status_view.set_health(self._player.get_health())
 
         # hot bar
         self._hot_bar_view.render(self._hot_bar.items(),
