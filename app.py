@@ -10,7 +10,7 @@ __copyright__ = "The University of Queensland, 2019"
 import tkinter as tk
 import random
 from collections import namedtuple
-
+from tkinter import simpledialog
 import pymunk
 
 from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock
@@ -294,7 +294,13 @@ class Ninedraft:
                 (lambda x: lambda e: self._activate_item(x))(i))
 
         # Task 1.6 File Menu & Dialogs: Add file menu here
-        # ...
+        self.menu = tk.Menu(self._master)
+        file_bar = tk.Menu(self.menu)
+        file_bar.add_command(label="New Game", command=self._restart_confirm)
+        file_bar.add_command(label="Exit", command=self._quit_confirm)
+
+        self.menu.add_cascade(label='File', menu=file_bar)
+        self._master.config(menu=self.menu)
 
         self._target_in_range = False
         self._target_position = 0, 0
@@ -302,6 +308,21 @@ class Ninedraft:
         self.redraw()
 
         self.step()
+
+    def _quit_confirm(self):
+        result = simpledialog.messagebox.askyesno(
+            title='quit confirm', message='Do you really want to quit?')
+        if result:
+            self._master.quit()
+
+    def _restart_confirm(self):
+        result = simpledialog.messagebox.askyesno(
+            title='restart confirm', message='Do you really want to restart?')
+        if result:
+            self._master.destroy()
+            root = tk.Tk()
+            self.__init__(root)
+            root.mainloop()
 
     def redraw(self):
         self._view.delete(tk.ALL)
