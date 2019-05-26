@@ -182,7 +182,7 @@ class FoodItem(Item):
         return True
 
     def place(self):
-        return [('effect', (self._id, ))]
+        return [('effect', ("food", self.strength))]
 
 
 class ToolItem(Item):

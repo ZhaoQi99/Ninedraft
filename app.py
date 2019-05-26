@@ -109,6 +109,8 @@ def create_item(*item_id):
             return BlockItem("wood")
         elif item_type == "stone":
             return BlockItem("stone")
+        elif item_type == "stick":
+            return BlockItem("stick")
 
     raise KeyError(f"No item defined for {item_id}")
 
@@ -160,6 +162,9 @@ ITEM_COLOURS = {
     'furnace': 'black',
     'cooked_apple': 'red4'
 }
+
+CRAFTING_RECIPES_2x2 = [(((None, 'wood'), (None, 'wood')),
+                         Stack(create_item('stick'), 4))]
 
 
 def load_simple_world(world):
@@ -452,7 +457,10 @@ class Ninedraft:
 
     def _trigger_crafting(self, craft_type):
         print(f"Crafting with {craft_type}")
-        # crafter = GridCrafter(CRAFTING_RECIPES_2x2)
+        if craft_type == "basic":
+            crafter = GridCrafter(CRAFTING_RECIPES_2x2)
+            self._crafting_window = CraftingWindow(
+                self._master, "Craft", self._hot_bar, self._inventory, crafter)
 
     def run_effect(self, effect):
         if len(effect) == 2:

@@ -10,7 +10,7 @@ __copyright__ = "The University of Queensland, 2019"
 import tkinter as tk
 
 from core import TK_MOUSE_EVENTS
-from grid import Grid, SelectableGrid, ItemGridView
+from grid import Grid, SelectableGrid, ItemGridView, Stack
 from core import get_modifiers
 
 
@@ -40,8 +40,9 @@ class GridCrafter:
 
         for recipe in recipes:
             if len(recipe) != rows and len(recipe[0]) != columns:
-                raise ValueError(f"Wrong recipe dimensions; expecting {rows}x{columns} but "
-                                 f"got {len(recipe)}x{len(recipe[0])} with {recipe}")
+                raise ValueError(
+                    f"Wrong recipe dimensions; expecting {rows}x{columns} but "
+                    f"got {len(recipe)}x{len(recipe[0])} with {recipe}")
 
         self._recipes = recipes
 
@@ -170,7 +171,8 @@ class GridCrafter:
             KeyError: if 'key' is not a valid key for this grid crafter
         """
         if key not in self:
-            raise KeyError(f"Invalid key {key} for {self.__class__.__name__} crafter")
+            raise KeyError(
+                f"Invalid key {key} for {self.__class__.__name__} crafter")
 
         self._selected = key
 
@@ -189,7 +191,8 @@ class GridCrafter:
             KeyError: if 'key' is not a valid key for this grid crafter
         """
         if key not in self:
-            raise KeyError(f"Invalid key {key} for {self.__class__.__name__} crafter")
+            raise KeyError(
+                f"Invalid key {key} for {self.__class__.__name__} crafter")
 
         if self._selected == key:
             self._selected = None
@@ -209,9 +212,19 @@ class GridCrafterView(tk.Frame):
                     The (row, column) size of the grid crafter's input grid
         """
         super().__init__(master)
-
         # Task 2.2 Crafting: Create widgets here
-        # ...
+        self._input = SelectableGrid(rows=input_size[0], columns=input_size[1])
+        self._input_view = ItemGridView(self, self._input.get_size())
+        self._output = SelectableGrid(rows=1, columns=1)
+        self._output_view = ItemGridView(self, (1, 1))
+        self._input_view.pack(side=tk.LEFT)
+        self._button = tk.Button(self, text="=>Craft=>", height=1)
+        self._button.pack(side=tk.LEFT)
+        self._output_view.pack(side=tk.LEFT)
+        self._input_view.render(self._input.items(),
+                                self._input.get_selected())
+        self._output_view.render(self._output.items(),
+                                 self._output.get_selected())
 
     def render(self, key_stack_pairs, selected):
         """Renders the stacks at appropriate cells, as determined by 'key_stack_pairs'
@@ -223,18 +236,16 @@ class GridCrafterView(tk.Frame):
             selected (*): The key that is currently selected, or None if no key is selected
         """
         # Task 2.2 Crafting: Create widgets here
-        # ...
-        # print(f"{selected} is selected")
+        print(f"{selected} is selected")
         for key, stack in key_stack_pairs:
-            # print(f"Redrawing {stack} at {key}")
+            print(f"Redrawing {stack} at {key}")
             if key == "output":
                 # Task 2.2 Crafting: Draw output cell
-                # ...
-                pass
+                self._output_view.draw_cell((0, 0), stack, selected == "output")
             else:
                 # Task 2.2 Crafting: Draw input cells
-                # ...
-                pass
+                self._input_view.draw_cell(key, stack,
+                                           True if selected == key else False)
 
     def bind_for_id(self, event, callback):
         """Binds callback to tkinter mouse event
@@ -245,7 +256,9 @@ class GridCrafterView(tk.Frame):
         """
         if event not in TK_MOUSE_EVENTS:
             return
-
+        self._input_view.bind_for_id(event, callback)
+        self._output_view.bind(event, lambda e: callback("output", e))
+        self._button.bind(event, lambda e: callback("craft", e))
         # Task 2.2 Crafting: Bind to tkinter widgets here
         # When a cell is clicked, we need to call the callback. Tkinter's bind does
         # this for us, but not exactly how we want. Tkinter bound callbacks have a single
@@ -267,14 +280,14 @@ class GridCrafterView(tk.Frame):
         # ...
 
     # Task 2.2 Crafting: You may add additional methods here
-    # ...
 
 
 class CraftingWindow(tk.Toplevel):
     """Tkinter widget to manage a the three relevant widgets for a crafting window:
         crafter, inventory, and hotbar"""
 
-    def __init__(self, master, title, hot_bar: Grid, inventory: Grid, crafter: GridCrafter):
+    def __init__(self, master, title, hot_bar: Grid, inventory: Grid,
+                 crafter: GridCrafter):
         """Constructor
 
         Parameters:
@@ -302,31 +315,44 @@ class CraftingWindow(tk.Toplevel):
 
         for widget_key in ('inventory', 'hot_bar'):
             widget = self._sources[widget_key]
-            self._source_views[widget_key] = view_widget = ItemGridView(self, widget.get_size())
+            self._source_views[widget_key] = view_widget = ItemGridView(
+                self, widget.get_size())
             view_widget.pack()
 
-            view_widget.bind_for_id("<Button-1>",
-                                    lambda key, e, widget_key=widget_key: self._handle_left_click(widget_key, key, e))
-            view_widget.bind_for_id("<Button-2>",
-                                    lambda key, e, widget_key=widget_key: self._handle_right_click(widget_key, key, e))
+            view_widget.bind_for_id(
+                "<Button-1>",
+                lambda key, e, widget_key=widget_key: self._handle_left_click(
+                    widget_key, key, e))
+            view_widget.bind_for_id(
+                "<Button-2>",
+                lambda key, e, widget_key=widget_key: self._handle_right_click(
+                    widget_key, key, e))
 
         self.redraw()
 
     def _load_crafter_view(self):
         """Loads the appropriate crafter view"""
-        self._source_views['crafter'] = crafter_view = GridCrafterView(self, self._sources['crafter'].get_input_size())
+        self._source_views['crafter'] = crafter_view = GridCrafterView(
+            self, self._sources['crafter'].get_input_size())
 
         crafter_view.pack()
-        crafter_view.bind_for_id("<Button-1>", lambda key, e: self._handle_left_click("crafter", key, e))
-        crafter_view.bind_for_id("<Button-2>", lambda key, e: self._handle_right_click("crafter", key, e))
+        crafter_view.bind_for_id(
+            "<Button-1>", lambda key, e: self._handle_left_click(
+                "crafter", key, e))
+        crafter_view.bind_for_id(
+            "<Button-2>", lambda key, e: self._handle_right_click(
+                "crafter", key, e))
 
     def redraw(self):
         """Redraws all widgets (i.e. crafter, inventory, & hotbar)"""
-        selected_widget, selected_position = self._selection if self._selection else (None, None)
+        selected_widget, selected_position = self._selection if self._selection else (
+            None, None)
 
         for key, widget in self._sources.items():
             view_widget = self._source_views[key]
-            view_widget.render(widget.items(), selected_position if selected_widget == key else None)
+            view_widget.render(
+                widget.items(),
+                selected_position if selected_widget == key else None)
 
     def get_source(self, widget, key):
         """(Stack) Returns the stack at the cell corresponding to 'key' in 'widget'"""
@@ -387,9 +413,12 @@ class CraftingWindow(tk.Toplevel):
                         self.set_source(*selection, to_stack)
                 else:
                     # Destination is non-empty
-                    if to_stack.matches(from_stack) and from_stack.get_item().is_stackable():
+                    if to_stack.matches(from_stack) and from_stack.get_item(
+                    ).is_stackable():
                         # Source & Destination match
-                        to_stack.absorb(from_stack, maximum=None if 'ctrl' in key_modifiers else 1)
+                        to_stack.absorb(
+                            from_stack,
+                            maximum=None if 'ctrl' in key_modifiers else 1)
                     else:
                         # Source & Destination don't match
                         self._selection = selection
