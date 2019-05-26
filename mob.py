@@ -7,7 +7,6 @@ __version__ = "1.1.0"
 __date__ = "26/04/2019"
 __copyright__ = "The University of Queensland, 2019"
 
-
 import random
 import cmath
 
@@ -17,6 +16,9 @@ MOB_DEFAULT_TEMPO = 40
 
 BIRD_GRAVITY_FACTOR = 150
 BIRD_X_SCALE = 1.61803
+
+SHEEP_X_SCALE = 0.5
+SHEEP_GRAVITY_FACTOR = 80
 
 
 class Mob(DynamicThing):
@@ -80,13 +82,41 @@ class Bird(Mob):
             # a random point on a movement circle (radius=tempo), scaled by the percentage
             # of health remaining
             health_percentage = self._health / self._max_health
-            z = cmath.rect(self._tempo * health_percentage, random.uniform(0, 2 * cmath.pi))
+            z = cmath.rect(self._tempo * health_percentage,
+                           random.uniform(0, 2 * cmath.pi))
 
             # stretch that random point onto an ellipse that is wider on the x-axis
-            dx, dy = z.real * BIRD_X_SCALE, z.imag
+            dx, dy = z.real * SHEEP_X_SCALE, z.imag
 
             x, y = self.get_velocity()
             velocity = x + dx, y + dy - BIRD_GRAVITY_FACTOR
+
+            self.set_velocity(velocity)
+
+        super().step(time_delta, game_data)
+
+    def use(self):
+        pass
+
+
+class Sheep(Mob):
+    def step(self, time_delta, game_data):
+        """Advance this bird by one time step
+
+        See PhysicalThing.step for parameters & return"""
+        # Every 20 steps; could track time_delta instead to be more precise
+        if self._steps % 20 == 0:
+            # a random point on a movement circle (radius=tempo), scaled by the percentage
+            # of health remaining
+            health_percentage = self._health / self._max_health
+            z = cmath.rect(self._tempo * health_percentage,
+                           random.uniform(0, 2 * cmath.pi))
+
+            # stretch that random point onto an ellipse that is wider on the x-axis
+            dx, dy = z.real * SHEEP_X_SCALE, z.imag
+
+            x, y = self.get_velocity()
+            velocity = x + dx, y + dy - SHEEP_GRAVITY_FACTOR
 
             self.set_velocity(velocity)
 

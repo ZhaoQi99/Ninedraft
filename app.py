@@ -22,7 +22,7 @@ from crafting import GridCrafter, CraftingWindow
 from world import World
 from core import positions_in_range
 from game import GameView, WorldViewRouter
-from mob import Bird
+from mob import Bird,Sheep
 
 BLOCK_SIZE = 2**5
 GRID_WIDTH = 2**5
@@ -115,6 +115,8 @@ def create_item(*item_id):
             return BlockItem("stick")
         elif item_type == "crafting_table":
             return BlockItem("crafting_table")
+        elif item_type == "wool":
+            return BlockItem("wool")
 
     raise KeyError(f"No item defined for {item_id}")
 
@@ -153,6 +155,7 @@ BLOCK_COLOURS = {
     'leaves': 'green',
     'crafting_table': 'pink',
     'furnace': 'black',
+    "wool":"#FFCEEB"
 }
 
 ITEM_COLOURS = {
@@ -164,7 +167,8 @@ ITEM_COLOURS = {
     'leaves': 'green',
     'crafting_table': 'pink',
     'furnace': 'black',
-    'cooked_apple': 'red4'
+    'cooked_apple': 'red4',
+    "wool":"#FFCEEB"
 }
 # 2x2 Crafting Recipes
 CRAFTING_RECIPES_2x2 = [
@@ -270,6 +274,8 @@ def load_simple_world(world):
     world.add_block_to_grid(create_block("mayhem", 0), 14, 8)
 
     world.add_mob(Bird("friendly_bird", (12, 12)), 400, 100)
+    world.add_mob(Sheep("friendly_sheep", (30, 30)),200 , 100)
+
 
 
 class Ninedraft:
@@ -498,7 +504,19 @@ class Ninedraft:
         # Invariant: (event.x, event.y) == self._target_position
         #  => Due to mouse move setting target position to cursor
         x, y = self._target_position
+        target = self._world.get_thing(x, y)
+        if not target:
+            return
+        if target.get_id() is "friendly_sheep":
+            print('Dropped block, wool')
+            physical = DroppedItem(create_item("wool"))
 
+            # this is so bleh
+            x0 = x - BLOCK_SIZE // 2 + 5 +  11 + random.randint(0, 2)
+            y0 = y - BLOCK_SIZE // 2 + 5 + 11 + random.randint(0, 2)
+
+            self._world.add_item(physical, x0, y0)
+            return
         if self._target_in_range:
             block = self._world.get_block(x, y)
             if block:
