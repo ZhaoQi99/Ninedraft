@@ -24,9 +24,9 @@ from core import positions_in_range
 from game import GameView, WorldViewRouter
 from mob import Bird
 
-BLOCK_SIZE = 2 ** 5
-GRID_WIDTH = 2 ** 5
-GRID_HEIGHT = 2 ** 4
+BLOCK_SIZE = 2**5
+GRID_WIDTH = 2**5
+GRID_HEIGHT = 2**4
 
 # Task 3/Post-grad only:
 # Class to hold game data that is passed to each thing's step function
@@ -88,7 +88,8 @@ def create_item(*item_id):
     """
     if len(item_id) == 2:
 
-        if item_id[0] in MATERIAL_TOOL_TYPES and item_id[1] in TOOL_DURABILITIES:
+        if item_id[0] in MATERIAL_TOOL_TYPES and item_id[
+                1] in TOOL_DURABILITIES:
             raise NotImplementedError("Tool creation is not yet handled")
 
     elif len(item_id) == 1:
@@ -172,7 +173,8 @@ def load_simple_world(world):
     for trunk in trunks:
         cells[trunk] = create_block('wood')
 
-    leaves = [(4, 3), (3, 3), (2, 3), (4, 2), (3, 2), (2, 2), (4, 4), (3, 4), (2, 4)]
+    leaves = [(4, 3), (3, 3), (2, 3), (4, 2), (3, 2), (2, 2), (4, 4), (3, 4),
+              (2, 4)]
 
     for leaf in leaves:
         cells[leaf] = create_block('leaf')
@@ -206,14 +208,13 @@ class Ninedraft:
         self._player = Player()
         self._world.add_player(self._player, 250, 150)
 
-        self._world.add_collision_handler("player", "item", on_begin=self._handle_player_collide_item)
+        self._world.add_collision_handler(
+            "player", "item", on_begin=self._handle_player_collide_item)
 
         self._hot_bar = SelectableGrid(rows=1, columns=10)
         self._hot_bar.select((0, 0))
 
-        starting_hotbar = [
-            Stack(create_item("dirt"), 20)
-        ]
+        starting_hotbar = [Stack(create_item("dirt"), 20)]
 
         for i, item in enumerate(starting_hotbar):
             self._hot_bar[0, i] = item
@@ -229,14 +230,17 @@ class Ninedraft:
             self._inventory[position] = stack
 
         self._crafting_window = None
-        self._master.bind("e",
-                          lambda e: self.run_effect(('crafting', 'basic')))
+        self._master.bind(
+            "e", lambda e: self.run_effect(('crafting', 'basic')))
 
-        self._view = GameView(master, self._world.get_pixel_size(), WorldViewRouter(BLOCK_COLOURS, ITEM_COLOURS))
+        self._view = GameView(master, self._world.get_pixel_size(),
+                              WorldViewRouter(BLOCK_COLOURS, ITEM_COLOURS))
         self._view.pack()
 
         # Task 1.2 Mouse Controls: Bind mouse events here
-        # ...
+        self._master.bind("<Motion>", self._mouse_move)
+        self._master.bind("<1>", self._left_click)
+        self._master.bind("<3>", self._right_click)
 
         # Task 1.3: Create instance of StatusView here
         # ...
@@ -276,16 +280,22 @@ class Ninedraft:
         # target
         target_x, target_y = self._target_position
         target = self._world.get_block(target_x, target_y)
-        cursor_position = self._world.grid_to_xy_centre(*self._world.xy_to_grid(target_x, target_y))
+        cursor_position = self._world.grid_to_xy_centre(
+            *self._world.xy_to_grid(target_x, target_y))
 
         # Task 1.2 Mouse Controls: Show/hide target here
-        # ...
+        if target and self._target_in_range:
+            self._view.show_target(self._player.get_position(),
+                                   cursor_position)
+        else:
+            self._view.hide_target()
 
         # Task 1.3 StatusView: Update StatusView values here
         # ...
 
         # hot bar
-        self._hot_bar_view.render(self._hot_bar.items(), self._hot_bar.get_selected())
+        self._hot_bar_view.render(self._hot_bar.items(),
+                                  self._hot_bar.get_selected())
 
     def step(self):
         data = GameData(self._world, self._player)
@@ -312,17 +322,22 @@ class Ninedraft:
 
         active_item, effective_item = self.get_holding()
 
-        was_item_suitable, was_attack_successful = block.mine(effective_item, active_item, luck)
+        was_item_suitable, was_attack_successful = block.mine(
+            effective_item, active_item, luck)
 
         effective_item.attack(was_attack_successful)
 
         if block.is_mined():
             # Task 1.2 Mouse Controls: Reduce the player's food/health appropriately
-            # ...
+            if self._player.get_food() > 0:
+                self._player.change_food(-1)
+            else:
+                self._player.change_health(-1)
 
             # Task 1.2 Mouse Controls: Remove the block from the world & get its drops
-            # ...
+            self._world.remove_block(block)
 
+            drops = block.get_drops()
             if not drops:
                 return
 
@@ -335,8 +350,10 @@ class Ninedraft:
                     physical = DroppedItem(create_item(*drop_types))
 
                     # this is so bleh
-                    x = x0 - BLOCK_SIZE // 2 + 5 + (i % 3) * 11 + random.randint(0, 2)
-                    y = y0 - BLOCK_SIZE // 2 + 5 + ((i // 3) % 3) * 11 + random.randint(0, 2)
+                    x = x0 - BLOCK_SIZE // 2 + 5 + (
+                        i % 3) * 11 + random.randint(0, 2)
+                    y = y0 - BLOCK_SIZE // 2 + 5 + (
+                        (i // 3) % 3) * 11 + random.randint(0, 2)
 
                     self._world.add_item(physical, x, y)
                 elif drop_category == "block":
@@ -348,7 +365,8 @@ class Ninedraft:
         active_stack = self._hot_bar.get_selected_value()
         active_item = active_stack.get_item() if active_stack else self._hands
 
-        effective_item = active_item if active_item.can_attack() else self._hands
+        effective_item = active_item if active_item.can_attack(
+        ) else self._hands
 
         return active_item, effective_item
 
@@ -356,11 +374,11 @@ class Ninedraft:
         # select target block, if possible
         active_item, effective_item = self.get_holding()
 
-        pixel_range = active_item.get_attack_range() * self._world.get_cell_expanse()
+        pixel_range = active_item.get_attack_range(
+        ) * self._world.get_cell_expanse()
 
-        self._target_in_range = positions_in_range(self._player.get_position(),
-                                                   self._target_position,
-                                                   pixel_range)
+        self._target_in_range = positions_in_range(
+            self._player.get_position(), self._target_position, pixel_range)
 
     def _mouse_move(self, event):
         self._target_position = event.x, event.y
@@ -436,7 +454,8 @@ class Ninedraft:
 
             # handling multiple drops would be somewhat finicky, so prevent it
             if len(drops) > 1:
-                raise NotImplementedError("Cannot handle dropping more than 1 thing")
+                raise NotImplementedError(
+                    "Cannot handle dropping more than 1 thing")
 
             drop_category, drop_types = drops[0]
 
@@ -449,7 +468,8 @@ class Ninedraft:
                     self._world.add_block(create_block(drop_types[0]), x, y)
                 else:
                     raise NotImplementedError(
-                        "Automatically placing a block nearby if the target cell is full is not yet implemented")
+                        "Automatically placing a block nearby if the target cell is full is not yet implemented"
+                    )
 
             elif drop_category == "effect":
                 self.run_effect(drop_types)
@@ -462,7 +482,8 @@ class Ninedraft:
 
         self._hot_bar.toggle_selection((0, index))
 
-    def _handle_player_collide_item(self, player: Player, dropped_item: DroppedItem, data,
+    def _handle_player_collide_item(self, player: Player,
+                                    dropped_item: DroppedItem, data,
                                     arbiter: pymunk.Arbiter):
         """Callback to handle collision between the player and a (dropped) item. If the player has sufficient space in
         their to pick up the item, the item will be removed from the game world.
@@ -493,6 +514,7 @@ class Ninedraft:
 
         self._world.remove_item(dropped_item)
         return False
+
 
 # Task 1.1 App class: Add a main function to instantiate the GUI here
 def main():
