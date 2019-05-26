@@ -278,7 +278,7 @@ class Ninedraft:
         self._hot_bar_view.pack(side=tk.TOP, fill=tk.X)
 
         # Task 1.5 Keyboard Controls: Bind to space bar for jumping here
-        # ...
+        self._master.bind("<space>", lambda x: self._jump())
 
         self._master.bind("a", lambda e: self._move(-1, 0))
         self._master.bind("<Left>", lambda e: self._move(-1, 0))
@@ -288,7 +288,10 @@ class Ninedraft:
         self._master.bind("<Down>", lambda e: self._move(0, 1))
 
         # Task 1.5 Keyboard Controls: Bind numbers to hotbar activation here
-        # ...
+        for i in range(10):
+            self._master.bind(
+                str((i + 1) % 10),
+                (lambda x: lambda e: self._activate_item(x))(i))
 
         # Task 1.6 File Menu & Dialogs: Add file menu here
         # ...
