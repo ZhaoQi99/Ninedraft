@@ -716,11 +716,7 @@ class Ninedraft:
     def _handle_player_collide_mob(self, player: Player, mob: Mob, data,arbiter: pymunk.Arbiter):
         if mob.get_id()=="foe_bee":
             print(f"{self._player} touch a bee,get 1 damage")
-            mob.attack(True)
             self._player.change_health(-1)
-            if mob.is_dead:
-                print("A bee is deaded")
-                self._world.remove_mob(mob)
 
 # Task 1.1 App class: Add a main function to instantiate the GUI here
 def main():
