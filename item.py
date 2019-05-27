@@ -217,4 +217,4 @@ TOOL_DURABILITIES = {
 # Types of tools that can be made from a resource (material)
 MATERIAL_TOOL_TYPES = {"axe", "shovel", "hoe", "pickaxe", "sword"}
 
-FOOD_STRENGTH = {"apple": 12}
+FOOD_STRENGTH = {"apple": 12, "cooked_apple": 20}

@@ -13,7 +13,7 @@ from collections import namedtuple
 from tkinter import simpledialog
 import pymunk
 
-from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock,CraftingTableBlock,HiveBlock
+from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock,CraftingTableBlock,HiveBlock,FurnaceBlock
 from grid import Stack, Grid, SelectableGrid, ItemGridView
 from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem, FOOD_STRENGTH
 from player import Player
@@ -65,6 +65,8 @@ def create_block(*block_id):
             return ResourceBlock(block_id, BREAK_TABLES[block_id])
         elif block_id == "hive":
             return HiveBlock()
+        elif block_id =="furnace":
+            return FurnaceBlock()
 
     elif block_id[0] == 'mayhem':
         return TrickCandleFlameBlock(block_id[1])
@@ -121,6 +123,8 @@ def create_item(*item_id):
             return BlockItem("crafting_table")
         elif item_type == "wool":
             return BlockItem("wool")
+        elif item_type == "furnace":
+            return BlockItem("furnace")
 
     raise KeyError(f"No item defined for {item_id}")
 
@@ -178,9 +182,20 @@ ITEM_COLOURS = {
 }
 # 2x2 Crafting Recipes
 CRAFTING_RECIPES_2x2 = [
-    (((None, 'wood'), (None, 'wood')), Stack(create_item('stick'), 4)),
-    ((('wood', 'wood'), ('wood', 'wood')),
-     Stack(create_item('crafting_table'), 1)),
+    (
+        (
+            (None, 'wood'), 
+            (None, 'wood')
+        ), 
+        Stack(create_item('stick'), 4)
+    ),
+    (
+        (
+            ('wood', 'wood'), 
+            ('wood', 'wood')
+        ),
+        Stack(create_item('crafting_table'), 1)
+    ),
 ]
 
 # 3x3 Crafting Recipes
@@ -224,8 +239,31 @@ CRAFTING_RECIPES_3x3 = {
             (None, 'stick', None)
         ),
         Stack(create_item('sword', 'wood'), 1)
+    ),
+    (
+        (
+            ('stone', 'stone', 'stone'),
+            ('stone', None, 'stone'),
+            ('stone', 'stone', 'stone')
+        ),
+        Stack(create_item('furnace'), 1)
     )
 }
+
+SMELTING_RECIPES_1x2=[
+    (
+        (
+            ('wood', 'apple'),
+        ),
+        Stack(create_item('food',"cooked_apple"), 1)
+    ),
+    (
+        (
+            ('apple',None),
+        ),
+        Stack(create_item('food',"cooked_apple"), 1)
+    ),
+]
 def load_simple_world(world):
     """Loads blocks into a world
 
@@ -312,7 +350,8 @@ class Ninedraft:
         self._hot_bar = SelectableGrid(rows=1, columns=10)
         self._hot_bar.select((0, 0))
 
-        starting_hotbar = [Stack(create_item("dirt"), 20)]
+        starting_hotbar = [Stack(create_item("dirt"), 20),Stack(create_item("crafting_table"), 1),
+        Stack(create_item("furnace"), 1)]
 
         for i, item in enumerate(starting_hotbar):
             self._hot_bar[0, i] = item
@@ -322,6 +361,7 @@ class Ninedraft:
         starting_inventory = [
             ((1, 5), Stack(Item('dirt'), 10)),
             ((0, 2), Stack(Item('wood'), 10)),
+            ((0, 4), Stack(Item('stone'), 20)),
         ]
         self._inventory = Grid(rows=3, columns=10)
         for position, stack in starting_inventory:
@@ -546,13 +586,15 @@ class Ninedraft:
 
     def _trigger_crafting(self, craft_type):
         print(f"Crafting with {craft_type}")
-        if craft_type in ("basic","crafting_table"):
+        if craft_type in ("basic","crafting_table","furnace"):
             if craft_type =="basic":
                 crafter = GridCrafter(CRAFTING_RECIPES_2x2)
             elif craft_type =="crafting_table":
-                crafter = GridCrafter(CRAFTING_RECIPES_3x3,rows=3,columns=3)
+                crafter = GridCrafter(CRAFTING_RECIPES_3x3, rows=3,columns=3)
+            elif craft_type =="furnace":
+                crafter = GridCrafter(SMELTING_RECIPES_1x2, rows=1,columns=2)
             self._crafting_window = CraftingWindow(
-                self._master, "Craft", self._hot_bar, self._inventory, crafter)
+                self._master, "Smelt", self._hot_bar, self._inventory, crafter, mode="smelting" if craft_type=="furnace" else "normal")
         
 
     def run_effect(self, effect):
@@ -565,7 +607,8 @@ class Ninedraft:
 
                 elif craft_type == "crafting_table":
                     print("Let's get our kraft® on! King of the brands")
-
+                elif craft_type =="furnace":
+                    print("Let's smelting by yourself")
                 self._trigger_crafting(craft_type)
                 return
             elif effect[0] in ("food", "health"):

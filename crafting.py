@@ -12,6 +12,7 @@ import tkinter as tk
 from core import TK_MOUSE_EVENTS
 from grid import Grid, SelectableGrid, ItemGridView, Stack
 from core import get_modifiers
+from PIL import Image, ImageTk
 
 
 class GridCrafter:
@@ -204,7 +205,7 @@ class GridCrafter:
 class GridCrafterView(tk.Frame):
     """A tkinter widget used to display crafting with a grid as input and a single cell as output"""
 
-    def __init__(self, master, input_size):
+    def __init__(self, master, input_size, mode="normal"):
         """Constructor
 
         Parameters:
@@ -213,14 +214,25 @@ class GridCrafterView(tk.Frame):
                     The (row, column) size of the grid crafter's input grid
         """
         super().__init__(master)
+        # check mode
+        if mode not in ["normal", "smelting"]:
+            raise NotImplementedError("Not supported mode")
         # Task 2.2 Crafting: Create widgets here
         self._input = SelectableGrid(rows=input_size[0], columns=input_size[1])
         self._input_view = ItemGridView(self, self._input.get_size())
         self._output = SelectableGrid(rows=1, columns=1)
-        self._output_view = ItemGridView(self, (1, 1))
+        if mode == "smelting":
+            self._button = tk.Button(self, text="=>Smelt=>", height=1)
+            im = Image.open('fire.jpg')
+            self.img = ImageTk.PhotoImage(im)
+            # img = tk.PhotoImage(file="fire.gif")
+            self._label = tk.Label(self, image=self.img)
+            self._label.pack(side=tk.LEFT)
+        else:
+            self._button = tk.Button(self, text="=>Craft=>", height=1)
         self._input_view.pack(side=tk.LEFT)
-        self._button = tk.Button(self, text="=>Craft=>", height=1)
         self._button.pack(side=tk.LEFT)
+        self._output_view = ItemGridView(self, (1, 1))
         self._output_view.pack(side=tk.LEFT)
         self._input_view.render(self._input.items(),
                                 self._input.get_selected())
@@ -288,8 +300,13 @@ class CraftingWindow(tk.Toplevel):
     """Tkinter widget to manage a the three relevant widgets for a crafting window:
         crafter, inventory, and hotbar"""
 
-    def __init__(self, master, title, hot_bar: Grid, inventory: Grid,
-                 crafter: GridCrafter):
+    def __init__(self,
+                 master,
+                 title,
+                 hot_bar: Grid,
+                 inventory: Grid,
+                 crafter: GridCrafter,
+                 mode="normal"):
         """Constructor
 
         Parameters:
@@ -310,8 +327,10 @@ class CraftingWindow(tk.Toplevel):
         }
 
         self._source_views = {}
-
-        self._load_crafter_view()
+        if mode in ["normal", "smelting"]:
+            self._load_crafter_view(mode)
+        else:
+            raise NotImplementedError("Not supported craft mode")
 
         self._selection = None
 
@@ -332,10 +351,10 @@ class CraftingWindow(tk.Toplevel):
 
         self.redraw()
 
-    def _load_crafter_view(self):
+    def _load_crafter_view(self, mode):
         """Loads the appropriate crafter view"""
         self._source_views['crafter'] = crafter_view = GridCrafterView(
-            self, self._sources['crafter'].get_input_size())
+            self, self._sources['crafter'].get_input_size(), mode)
 
         crafter_view.pack()
         crafter_view.bind_for_id(

@@ -292,3 +292,19 @@ class HiveBlock(Block):
 
     def get_drops(self, luck, correct_item_used):
         return [('mob', ('bee', ))] * 5
+
+
+class FurnaceBlock(Block):
+    _id = "furnace"
+    _break_table = {
+        "hand": (5, True),
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    def use(self):
+        return ('crafting', 'furnace')
+
+    def get_drops(self, luck, correct_item_used):
+        return [('item', ('furnace', ))]
