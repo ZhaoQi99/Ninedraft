@@ -39,6 +39,7 @@ class GridCrafter:
         self._selected = None
 
         for recipe in recipes:
+            recipe = recipe[0]
             if len(recipe) != rows and len(recipe[0]) != columns:
                 raise ValueError(
                     f"Wrong recipe dimensions; expecting {rows}x{columns} but "
@@ -255,7 +256,6 @@ class GridCrafterView(tk.Frame):
           - key (*) is the key of the cell clicked, etc.
           - mouse_event (tk.MouseEvent) is the original mouse event from tkinter
         """
-        print(event)
         if event not in TK_MOUSE_EVENTS:
             return
         self._input_view.bind_for_id(event, callback)
