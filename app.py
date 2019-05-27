@@ -125,6 +125,8 @@ def create_item(*item_id):
             return BlockItem("wool")
         elif item_type == "furnace":
             return BlockItem("furnace")
+        elif item_type == "honey":
+                return BlockItem("honey")
 
     raise KeyError(f"No item defined for {item_id}")
 
@@ -178,7 +180,8 @@ ITEM_COLOURS = {
     'crafting_table': 'pink',
     'furnace': 'black',
     'cooked_apple': 'red4',
-    "wool":"#FFCEEB"
+    "wool":"#FFCEEB",
+    "honey":"orange"
 }
 # 2x2 Crafting Recipes
 CRAFTING_RECIPES_2x2 = [
@@ -325,6 +328,7 @@ def load_simple_world(world):
         world.add_mob(Bee("foe_bee", (8, 8)), 300+rx, 30+ry)
     world.add_block_to_grid(create_block("hive"),15,8)
     world.add_block_to_grid(create_block("honey"),16,8)
+    world.add_block_to_grid(create_block("honey"),8,8)
 
 class Ninedraft:
     """High-level app class for Ninedraft, a 2d sandbox game"""
