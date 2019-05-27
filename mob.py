@@ -17,8 +17,13 @@ MOB_DEFAULT_TEMPO = 40
 BIRD_GRAVITY_FACTOR = 150
 BIRD_X_SCALE = 1.61803
 
+SHEEP_GRAVITY_FACTOR = 150
 SHEEP_X_SCALE = 0.5
-SHEEP_GRAVITY_FACTOR = 80
+
+BEE_X_SCALE = 0.3
+BEE_SWARM_DISTANCE = 8
+BEE_GRAVITY_FACTOR = 100
+BEE_Y_HEIGHT = 5.0
 
 
 class Mob(DynamicThing):
@@ -86,7 +91,7 @@ class Bird(Mob):
                            random.uniform(0, 2 * cmath.pi))
 
             # stretch that random point onto an ellipse that is wider on the x-axis
-            dx, dy = z.real * SHEEP_X_SCALE, z.imag
+            dx, dy = z.real * BIRD_X_SCALE, z.imag
 
             x, y = self.get_velocity()
             velocity = x + dx, y + dy - BIRD_GRAVITY_FACTOR
@@ -124,3 +129,31 @@ class Sheep(Mob):
 
     def use(self):
         pass
+
+
+class Bee(Mob):
+    _max_health = 5
+
+    def __init__(self, mob_id, size, tempo=MOB_DEFAULT_TEMPO, max_health=20):
+        super().__init__(mob_id, size, tempo=tempo, max_health=5)
+
+    def step(self, time_delta, game_data):
+        health_percentage = self._health / self._max_health
+        z = cmath.rect(self._tempo * health_percentage,
+                       random.uniform(0, 2 * cmath.pi))
+        dx, dy = z.real * BEE_X_SCALE, z.imag
+        x, y = self.get_velocity()
+        # print(x, y)
+        if self._steps % 5 == 0:
+            velocity = x + dx, y - 40.0
+        else:
+            velocity = x + dx, y
+        self.set_velocity(velocity)
+        super().step(time_delta, game_data)
+
+    def use(self):
+        pass
+
+    def attack(self, successful):
+        if successful:
+            self._health -= 1

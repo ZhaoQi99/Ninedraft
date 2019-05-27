@@ -13,7 +13,7 @@ from collections import namedtuple
 from tkinter import simpledialog
 import pymunk
 
-from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock,CraftingTableBlock
+from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock,CraftingTableBlock,HiveBlock
 from grid import Stack, Grid, SelectableGrid, ItemGridView
 from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem, FOOD_STRENGTH
 from player import Player
@@ -22,7 +22,7 @@ from crafting import GridCrafter, CraftingWindow
 from world import World
 from core import positions_in_range
 from game import GameView, WorldViewRouter
-from mob import Bird,Sheep
+from mob import Mob,Bird,Sheep,Bee,BEE_SWARM_DISTANCE
 
 BLOCK_SIZE = 2**5
 GRID_WIDTH = 2**5
@@ -61,6 +61,10 @@ def create_block(*block_id):
             return ResourceBlock(block_id, BREAK_TABLES[block_id])
         elif block_id == "crafting_table":
             return CraftingTableBlock()
+        elif block_id == "honey":
+            return ResourceBlock(block_id, BREAK_TABLES[block_id])
+        elif block_id == "hive":
+            return HiveBlock()
 
     elif block_id[0] == 'mayhem':
         return TrickCandleFlameBlock(block_id[1])
@@ -155,7 +159,9 @@ BLOCK_COLOURS = {
     'leaves': 'green',
     'crafting_table': 'pink',
     'furnace': 'black',
-    "wool":"#FFCEEB"
+    "wool":"#FFCEEB",
+    "hive":"purple",
+    "honey":"orange"
 }
 
 ITEM_COLOURS = {
@@ -275,8 +281,12 @@ def load_simple_world(world):
 
     world.add_mob(Bird("friendly_bird", (12, 12)), 400, 100)
     world.add_mob(Sheep("friendly_sheep", (30, 30)),200 , 100)
-
-
+    for i in range(5):
+        rx=random.randint(-BEE_SWARM_DISTANCE, BEE_SWARM_DISTANCE)
+        ry=random.randint(-BEE_SWARM_DISTANCE, BEE_SWARM_DISTANCE)
+        world.add_mob(Bee("foe_bee", (8, 8)), 300+rx, 30+ry)
+    world.add_block_to_grid(create_block("hive"),15,8)
+    world.add_block_to_grid(create_block("honey"),16,8)
 
 class Ninedraft:
     """High-level app class for Ninedraft, a 2d sandbox game"""
@@ -298,7 +308,7 @@ class Ninedraft:
 
         self._world.add_collision_handler(
             "player", "item", on_begin=self._handle_player_collide_item)
-
+        self._world.add_collision_handler("player","mob",on_post_solve=self._handle_player_collide_mob)
         self._hot_bar = SelectableGrid(rows=1, columns=10)
         self._hot_bar.select((0, 0))
 
@@ -474,6 +484,8 @@ class Ninedraft:
                     self._world.add_item(physical, x, y)
                 elif drop_category == "block":
                     self._world.add_block(create_block(*drop_types), x, y)
+                elif drop_category == "mob":
+                    self._world.add_mob(Bee("foe_bee",(8,8)),x,y)
                 else:
                     raise KeyError(f"Unknown drop category {drop_category}")
 
@@ -504,19 +516,29 @@ class Ninedraft:
         # Invariant: (event.x, event.y) == self._target_position
         #  => Due to mouse move setting target position to cursor
         x, y = self._target_position
+        mobs=self._world.get_mobs(x,y,2.0)
+        for mob in mobs:
+            if mob.get_id() is "friendly_sheep":
+                print('Dropped block, wool')
+                physical = DroppedItem(create_item("wool"))
+
+                # this is so bleh
+                x0 = x - BLOCK_SIZE // 2 + 5 +  11 + random.randint(0, 2)
+                y0 = y - BLOCK_SIZE // 2 + 5 + 11 + random.randint(0, 2)
+
+                self._world.add_item(physical, x0, y0)
+            elif mob.get_id() is "foe_bee":
+                print(f"{self._player} attack a bee,damage 1 hit")
+                mob.attack(True)
+                self._player.change_health(-1)
+                if mob.is_dead:
+                    print("A bee is deaded")
+                    self._world.remove_mob(mob)
+
         target = self._world.get_thing(x, y)
         if not target:
             return
-        if target.get_id() is "friendly_sheep":
-            print('Dropped block, wool')
-            physical = DroppedItem(create_item("wool"))
-
-            # this is so bleh
-            x0 = x - BLOCK_SIZE // 2 + 5 +  11 + random.randint(0, 2)
-            y0 = y - BLOCK_SIZE // 2 + 5 + 11 + random.randint(0, 2)
-
-            self._world.add_item(physical, x0, y0)
-            return
+            
         if self._target_in_range:
             block = self._world.get_block(x, y)
             if block:
@@ -648,6 +670,14 @@ class Ninedraft:
         self._world.remove_item(dropped_item)
         return False
 
+    def _handle_player_collide_mob(self, player: Player, mob: Mob, data,arbiter: pymunk.Arbiter):
+        if mob.get_id()=="foe_bee":
+            print(f"{self._player} touch a bee,get 1 damage")
+            mob.attack(True)
+            self._player.change_health(-1)
+            if mob.is_dead:
+                print("A bee is deaded")
+                self._world.remove_mob(mob)
 
 # Task 1.1 App class: Add a main function to instantiate the GUI here
 def main():

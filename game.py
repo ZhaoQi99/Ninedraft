@@ -16,7 +16,7 @@ from block import Block, TrickCandleFlameBlock
 from dropped_item import DroppedItem
 from player import Player
 from physical_thing import BoundaryWall
-from mob import Mob, Bird, Sheep
+from mob import Mob, Bird, Sheep, Bee
 
 
 class GameView(tk.Canvas):
@@ -163,6 +163,7 @@ class WorldViewRouter(InstanceRouter):
         (Bird, '_draw_bird'),
         (BoundaryWall, '_draw_undefined'),
         (Sheep, '_draw_sheep'),
+        (Bee, '_draw_bee'),
         (None.__class__, '_draw_undefined')
     ]
 
@@ -238,6 +239,17 @@ class WorldViewRouter(InstanceRouter):
                                 (bb.left, bb.bottom),
                                 fill='#FFCEEB',
                                 tags=('mob', 'sheep'))
+        ]
+
+    def _draw_bee(self, instance, shape, view):
+        return [
+            view.create_oval(
+                shape.bb.left,
+                shape.bb.top,
+                shape.bb.right,
+                shape.bb.bottom,
+                fill='orange',
+                tags=('mob', 'bee'))
         ]
 
     def _draw_undefined(self, instance, shape, view):

@@ -40,6 +40,9 @@ BREAK_TABLES = {
         "iron_pickaxe": (0.4, True),
         "diamond_pickaxe": (0.3, True),
         "golden_pickaxe": (0.2, True)
+    },
+    "honey": {
+        "hand": (5, True),
     }
 }
 
@@ -64,7 +67,6 @@ class Block(PhysicalThing):
         if self._id is None:
             raise NotImplementedError(
                 "A Block subclass must define an _id attribute")
-
         if not self._break_table:
             raise NotImplementedError(
                 "A Block subclass must define an _break_table attribute")
@@ -277,3 +279,16 @@ class CraftingTableBlock(Block):
 
     def get_drops(self, luck, correct_item_used):
         return [('item', ('crafting_table', ))]
+
+
+class HiveBlock(Block):
+    _id = "hive"
+    _break_table = {
+        "hand": (5, True),
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    def get_drops(self, luck, correct_item_used):
+        return [('mob', ('bee', ))] * 5
