@@ -402,7 +402,8 @@ class Ninedraft:
         self._master.bind("<Right>", lambda e: self._move(1, 0))
         self._master.bind("s", lambda e: self._move(0, 1))
         self._master.bind("<Down>", lambda e: self._move(0, 1))
-
+        self._master.bind("w", lambda e: self._move(0, -1))
+        self._master.bind("<Up>", lambda e: self._move(0, -1))
         # Task 1.5 Keyboard Controls: Bind numbers to hotbar activation here
         for i in range(10):
             self._master.bind(
