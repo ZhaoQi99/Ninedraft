@@ -338,7 +338,7 @@ class Ninedraft:
 
         self._master = master
         self._world = World((GRID_WIDTH, GRID_HEIGHT), BLOCK_SIZE)
-
+        self._master.title("Ninedraft")
         load_simple_world(self._world)
 
         self._player = Player()
