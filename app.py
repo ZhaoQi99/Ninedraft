@@ -113,20 +113,8 @@ def create_item(*item_id):
             return BlockItem(item_type)
 
         # Task 1.4 Basic Items: Create wood & stone here
-        elif item_type == "wood":
-            return BlockItem("wood")
-        elif item_type == "stone":
-            return BlockItem("stone")
-        elif item_type == "stick":
-            return BlockItem("stick")
-        elif item_type == "crafting_table":
-            return BlockItem("crafting_table")
-        elif item_type == "wool":
-            return BlockItem("wool")
-        elif item_type == "furnace":
-            return BlockItem("furnace")
-        elif item_type == "honey":
-                return BlockItem("honey")
+        elif item_type in ("wood", "stone", "stick", "crafting_table", "wool", "furnace", "honey"):
+            return BlockItem(item_type)
 
     raise KeyError(f"No item defined for {item_id}")
 
@@ -413,8 +401,8 @@ class Ninedraft:
         # Task 1.6 File Menu & Dialogs: Add file menu here
         self.menu = tk.Menu(self._master)
         file_bar = tk.Menu(self.menu)
-        file_bar.add_command(label="New Game", command=self._restart_confirm)
-        file_bar.add_command(label="Exit", command=self._quit_confirm)
+        file_bar.add_command(label="New Game", command=self._restart)
+        file_bar.add_command(label="Exit", command=self._quit)
 
         self.menu.add_cascade(label='File', menu=file_bar)
         self._master.config(menu=self.menu)
@@ -426,15 +414,15 @@ class Ninedraft:
 
         self.step()
 
-    def _quit_confirm(self):
+    def _quit(self):
         result = simpledialog.messagebox.askyesno(
-            title='quit confirm', message='Do you really want to quit?')
+            title='quit', message='Do you really want to quit?')
         if result:
             self._master.quit()
 
-    def _restart_confirm(self):
+    def _restart(self):
         result = simpledialog.messagebox.askyesno(
-            title='restart confirm', message='Do you really want to restart?')
+            title='restart', message='Do you really want to restart?')
         if result:
             self._master.destroy()
             root = tk.Tk()
