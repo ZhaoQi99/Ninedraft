@@ -13,7 +13,7 @@ from collections import namedtuple
 from tkinter import simpledialog
 import pymunk
 
-from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock,CraftingTableBlock,HiveBlock,FurnaceBlock
+from block import Block, ResourceBlock, BREAK_TABLES, LeafBlock, TrickCandleFlameBlock, CraftingTableBlock, HiveBlock, FurnaceBlock
 from grid import Stack, Grid, SelectableGrid, ItemGridView
 from item import Item, SimpleItem, HandItem, BlockItem, MATERIAL_TOOL_TYPES, TOOL_DURABILITIES, ToolItem, FoodItem, FOOD_STRENGTH
 from player import Player
@@ -22,7 +22,7 @@ from crafting import GridCrafter, CraftingWindow
 from world import World
 from core import positions_in_range
 from game import GameView, WorldViewRouter
-from mob import Mob,Bird,Sheep,Bee,BEE_SWARM_DISTANCE
+from mob import Mob, Bird, Sheep, Bee, BEE_SWARM_DISTANCE
 
 BLOCK_SIZE = 2**5
 GRID_WIDTH = 2**5
@@ -65,7 +65,7 @@ def create_block(*block_id):
             return ResourceBlock(block_id, BREAK_TABLES[block_id])
         elif block_id == "hive":
             return HiveBlock()
-        elif block_id =="furnace":
+        elif block_id == "furnace":
             return FurnaceBlock()
 
     elif block_id[0] == 'mayhem':
@@ -121,7 +121,13 @@ def create_item(*item_id):
 
 # Task 1.3: Implement StatusView class here
 class StatusView(tk.Frame):
+    """A tkinter widget used to display health and food"""
     def __init__(self, master):
+        """Constructor
+
+        Parameters:
+            master(tk.Frame | tk.Toplevel | tk.Tk): Tkinter parent widget
+        """
         super().__init__(master)
         self.health = tk.DoubleVar()
         self.food = tk.DoubleVar()
@@ -175,9 +181,9 @@ ITEM_COLOURS = {
 CRAFTING_RECIPES_2x2 = [
     (
         (
-            (None, 'wood'), 
+            (None, 'wood'),
             (None, 'wood')
-        ), 
+        ),
         Stack(create_item('stick'), 4)
     ),
     (
@@ -203,7 +209,7 @@ CRAFTING_RECIPES_2x2 = [
     ),
     (
         (
-            ('wood', 'wood'), 
+            ('wood', 'wood'),
             ('wood', 'wood')
         ),
         Stack(create_item('crafting_table'), 1)
@@ -336,9 +342,13 @@ def load_simple_world(world):
     for i in range(5):
         rx=random.randint(-BEE_SWARM_DISTANCE, BEE_SWARM_DISTANCE)
         ry=random.randint(-BEE_SWARM_DISTANCE, BEE_SWARM_DISTANCE)
-        world.add_mob(Bee("foe_bee", (8, 8)), 300+rx, 30+ry)
-    world.add_block_to_grid(create_block("hive"),15,8)
-    world.add_block_to_grid(create_block("honey"),16,8)
+        world.add_mob(Bee("foe_bee", (8, 8)), 500+rx, 30+ry)
+    world.add_block_to_grid(create_block("hive"), 15, 8)
+    world.add_block_to_grid(create_block("hive"), 15, 7)
+    world.add_block_to_grid(create_block("hive"), 15, 6)
+    world.add_block_to_grid(create_block("honey"), 16, 8)
+    world.add_block_to_grid(create_block("honey"), 17, 8)
+    world.add_block_to_grid(create_block("honey"), 16, 7)
     world.add_block_to_grid(create_block("honey"),8,8)
 
 class Ninedraft:
@@ -356,7 +366,7 @@ class Ninedraft:
         self._master.title("Ninedraft")
         load_simple_world(self._world)
 
-        self._player = Player()
+        self._player = Player(max_health=40.0)
         self._world.add_player(self._player, 250, 150)
 
         self._world.add_collision_handler(
@@ -515,11 +525,14 @@ class Ninedraft:
         effective_item.attack(was_attack_successful)
 
         if block.is_mined():
+            print(block)
             # Task 1.2 Mouse Controls: Reduce the player's food/health appropriately
             if self._player.get_food() > 0:
                 self._player.change_food(-1)
             else:
                 self._player.change_health(-1)
+                if self._player.get_health() <= 0:
+                    self._restart()
 
             # Task 1.2 Mouse Controls: Remove the block from the world & get its drops
             self._world.remove_block(block)
@@ -592,6 +605,8 @@ class Ninedraft:
                 print(f"{self._player} attack a bee,damage 1 hit")
                 mob.attack(True)
                 self._player.change_health(-1)
+                if self._player.get_health() <= 0:
+                        self._restart()
                 if mob.is_dead:
                     print("A bee is deaded")
                     self._world.remove_mob(mob)
@@ -738,6 +753,8 @@ class Ninedraft:
         if mob.get_id()=="foe_bee":
             print(f"{self._player} touch a bee,get 1 damage")
             self._player.change_health(-1)
+            if self._player.get_health() <= 0:
+                self._restart()
 
 # Task 1.1 App class: Add a main function to instantiate the GUI here
 def main():
