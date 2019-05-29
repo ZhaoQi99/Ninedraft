@@ -204,13 +204,16 @@ class ToolItem(Item):
         if not successful:
             self.durability -= 1
 
+    def get_max_durability(self):
+        return TOOL_DURABILITIES[self.tool_type]
+
 
 # Default mapping of resource to durability for tools crafted from a given resource
 TOOL_DURABILITIES = {
     "wood": 60,
     "stone": 132,
     "iron": 251,
-    "gold": 33,
+    "golden": 33,
     "diamond": 1562
 }
 

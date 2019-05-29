@@ -98,7 +98,7 @@ def create_item(*item_id):
 
         if item_id[0] in MATERIAL_TOOL_TYPES and item_id[
                 1] in TOOL_DURABILITIES:
-            return ToolItem(f"{item_id[0]}_{item_id[1]}", item_id[1],
+            return ToolItem(f"{item_id[1]}_{item_id[0]}", item_id[1],
                             TOOL_DURABILITIES[item_id[1]])
         elif item_id[0] == "food":
             return FoodItem(item_id[1], FOOD_STRENGTH[item_id[1]])
@@ -178,6 +178,27 @@ CRAFTING_RECIPES_2x2 = [
             (None, 'wood'), 
             (None, 'wood')
         ), 
+        Stack(create_item('stick'), 4)
+    ),
+    (
+        (
+            ('wood', 'wood'),
+            (None, None)
+        ),
+        Stack(create_item('stick'), 4)
+    ),
+    (
+        (
+            ('wood', None),
+            ('wood', None)
+        ),
+        Stack(create_item('stick'), 4)
+    ),
+    (
+        (
+            (None, None),
+            ('wood', 'wood')
+        ),
         Stack(create_item('stick'), 4)
     ),
     (
@@ -342,8 +363,13 @@ class Ninedraft:
         self._hot_bar = SelectableGrid(rows=1, columns=10)
         self._hot_bar.select((0, 0))
 
-        starting_hotbar = [Stack(create_item("dirt"), 20),Stack(create_item("crafting_table"), 1),
-        Stack(create_item("furnace"), 1)]
+        starting_hotbar = [
+            Stack(create_item("dirt"), 20),
+            Stack(create_item("crafting_table"), 1),
+            Stack(create_item("furnace"), 1),
+            Stack(create_item('axe', 'wood'), 1),
+            Stack(create_item('pickaxe', 'golden'), 1),
+        ]
 
         for i, item in enumerate(starting_hotbar):
             self._hot_bar[0, i] = item
