@@ -17,10 +17,10 @@ MOB_DEFAULT_TEMPO = 40
 BIRD_GRAVITY_FACTOR = 150
 BIRD_X_SCALE = 1.61803
 
-SHEEP_GRAVITY_FACTOR = 50
-SHEEP_X_SCALE = 0.5
+SHEEP_GRAVITY_FACTOR = 30
+SHEEP_X_SCALE = 1.4
 
-BEE_X_SCALE = 2.0
+BEE_X_SCALE = 2.5
 BEE_GRAVITY_FACTOR = 180
 BEE_ATACK_RATE = 0.2
 BEE_SWARM_DISTANCE = 5
@@ -139,7 +139,7 @@ class Bee(Mob):
         super().__init__(mob_id, size, tempo=tempo, max_health=5)
 
     def step(self, time_delta, game_data, players, honey_blocks):
-        if self._steps % 20 == 0:
+        if self._steps % 25 == 0:
             if random.random() < BEE_ATACK_RATE:
                 player = players[random.randint(0, len(players) - 1)]
                 player_x, player_y = player.get_position()
