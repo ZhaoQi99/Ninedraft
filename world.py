@@ -14,9 +14,9 @@ from typing import Tuple, Iterable
 from physical_thing import BoundaryWall, PhysicalThing
 from player import Player
 from dropped_item import DroppedItem
-from block import Block
-from mob import Mob
-
+from block import Block, HiveBlock
+from mob import Mob, Bee
+from random import random
 # The intention with the following constants is to express a finite range of values that
 # can effectively be treated as their own type in this code. We have used collections of
 # types that are familiar to the student (str/int).
@@ -25,23 +25,17 @@ from mob import Mob
 # See: https://docs.python.org/3/library/enum.html
 
 # Unique ids for each collision type
-COLLISION_TYPES = {
-    "wall": 1,
-    "block": 2,
-    "player": 3,
-    "item": 4,
-    "mob": 5
-}
+COLLISION_TYPES = {"wall": 1, "block": 2, "player": 3, "item": 4, "mob": 5}
 
 # Unique ids for each category of physical thing
 #   - Used when querying for items in a point/rectangle
 #   - Must be a unique power of 2, less than 2 ^ 32
 PHYSICAL_THING_CATEGORIES = {
-    "wall": 2 ** 1,
-    "block": 2 ** 2,
-    "player": 2 ** 3,
-    "item": 2 ** 4,
-    "mob": 2 ** 5
+    "wall": 2**1,
+    "block": 2**2,
+    "player": 2**3,
+    "item": 2**4,
+    "mob": 2**5
 }
 
 # Names for each collision event recognised by pymunk (can have a callback attached)
@@ -65,8 +59,13 @@ class World:
         - acceleration/gravity
     """
 
-    def __init__(self, grid_size, cell_expanse, gravity=(0, 300), boundary_thickness=50,
-                 collision_types=None, thing_categories=None):
+    def __init__(self,
+                 grid_size,
+                 cell_expanse,
+                 gravity=(0, 300),
+                 boundary_thickness=50,
+                 collision_types=None,
+                 thing_categories=None):
         """Creates a new world with four boundary walls
 
         Parameters:
@@ -108,20 +107,26 @@ class World:
         width, height = self._pixel_size
 
         walls = [
-            ('top', (0 - thickness, 0 - thickness), (width + thickness, 0 - thickness)),
-            ('bottom', (0 - thickness, height + thickness), (width + thickness, height + thickness)),
-            ('left', (0 - thickness, 0 - thickness), (0 - thickness, height + thickness)),
-            ('right', (width + thickness, 0 - thickness), (width + thickness, height + thickness)),
+            ('top', (0 - thickness, 0 - thickness), (width + thickness,
+                                                     0 - thickness)),
+            ('bottom', (0 - thickness, height + thickness),
+             (width + thickness, height + thickness)),
+            ('left', (0 - thickness, 0 - thickness), (0 - thickness,
+                                                      height + thickness)),
+            ('right', (width + thickness, 0 - thickness),
+             (width + thickness, height + thickness)),
         ]
 
         for wall_id, top_left, bottom_right in walls:
             wall = BoundaryWall(wall_id)
-            shape = pymunk.Segment(self._space.static_body, top_left, bottom_right, thickness)
+            shape = pymunk.Segment(self._space.static_body, top_left,
+                                   bottom_right, thickness)
             wall.set_shape(shape)
 
             shape.friction = 1.
             shape.collision_type = self._collision_types['wall']
-            shape.filter = pymunk.ShapeFilter(categories=self._thing_categories["wall"])
+            shape.filter = pymunk.ShapeFilter(
+                categories=self._thing_categories["wall"])
             shape.object = wall
 
             self._space.add(shape)
@@ -165,7 +170,19 @@ class World:
             thing = shape.object
 
             if thing:
-                thing.step(time_delta, game_data)
+                if isinstance(thing, Bee):
+                    players = [
+                        thing for thing in self.get_all_things()
+                        if isinstance(thing, Player)
+                    ]
+                    x, y = thing.get_position()
+                    blocks = self.get_blocks(x, y, 30)
+                    honey_blocks = [
+                        block for block in blocks if block.get_id() == 'honey'
+                    ]
+                    thing.step(time_delta, game_data, players, honey_blocks)
+                else:
+                    thing.step(time_delta, game_data)
 
         self._space.step(time_delta)
         self._last_time = now
@@ -180,7 +197,8 @@ class World:
 
     def grid_to_xy_centre(self, x: int, y: int) -> Tuple[int, int]:
         """Converts grid position to pixel position of its centre"""
-        return int((x + .5) * self._cell_expanse), int((y + .5) * self._cell_expanse)
+        return int((x + .5) * self._cell_expanse), int(
+            (y + .5) * self._cell_expanse)
 
     def _wrap_callback(self, callback):
         """Wraps a pymunk collision callback into a more OOP form"""
@@ -191,15 +209,22 @@ class World:
 
         return wrapped_callback
 
-    def add_collision_handler(self, collision_type_a, collision_type_b, data=None,
-                              on_begin=None, on_separate=None, on_pre_solve=None, on_post_solve=None):
+    def add_collision_handler(self,
+                              collision_type_a,
+                              collision_type_b,
+                              data=None,
+                              on_begin=None,
+                              on_separate=None,
+                              on_pre_solve=None,
+                              on_post_solve=None):
         """Adds a collision handler to the game world
 
         Parameters:
             collision_type_a (str): A collision type in
         """
-        handler = self._space.add_collision_handler(self._collision_types[collision_type_a],
-                                                    self._collision_types[collision_type_b])
+        handler = self._space.add_collision_handler(
+            self._collision_types[collision_type_a],
+            self._collision_types[collision_type_b])
 
         handler.data['data'] = data
 
@@ -222,8 +247,15 @@ class World:
             if thing:
                 yield thing
 
-    def add_thing(self, thing: PhysicalThing, x: float, y: float, size: Tuple[float, float], collision_type=None,
-                  categories=None, mass: float = 1, friction: float = 1):
+    def add_thing(self,
+                  thing: PhysicalThing,
+                  x: float,
+                  y: float,
+                  size: Tuple[float, float],
+                  collision_type=None,
+                  categories=None,
+                  mass: float = 1,
+                  friction: float = 1):
         """Adds a thing to the game world centred at the position ('x', 'y')
 
         Parameters:
@@ -246,7 +278,8 @@ class World:
 
         body = pymunk.Body(mass, pymunk.inf)
         body.position = x, y
-        shape = pymunk.Poly(body, [(left, top), (left, bottom), (right, bottom), (right, top)])
+        shape = pymunk.Poly(body, [(left, top), (left, bottom),
+                                   (right, bottom), (right, top)])
 
         shape.object = thing
         if collision_type is not None:
@@ -264,18 +297,25 @@ class World:
         """Removes a thing from the world"""
         self._space.remove(thing.get_shape())
 
-    def add_player(self, player: Player, x: float, y: float, mass: float = 50, friction: float = .5):
+    def add_player(self,
+                   player: Player,
+                   x: float,
+                   y: float,
+                   mass: float = 50,
+                   friction: float = .5):
         """Adds a player to game world at the position ('x', 'y')"""
         dx = dy = int(self._cell_expanse * .4 - 2)
 
         body = pymunk.Body(mass, pymunk.inf)
         body.position = x, y
 
-        shape = pymunk.Poly(body, [(-dx, -dy), (dx, -dy), (dx, dy), (-dx, dy)], radius=3)
+        shape = pymunk.Poly(
+            body, [(-dx, -dy), (dx, -dy), (dx, dy), (-dx, dy)], radius=3)
         shape.friction = friction
         shape.collision_type = self._collision_types['player']
         shape.object = player
-        shape.filter = pymunk.ShapeFilter(categories=self._thing_categories["player"])
+        shape.filter = pymunk.ShapeFilter(
+            categories=self._thing_categories["player"])
 
         player.set_shape(shape)
 
@@ -285,7 +325,11 @@ class World:
         """Removes the player from the game world"""
         self._space.remove(player.get_shape())
 
-    def add_block_to_grid(self, block: Block, column: int, row: int, friction: float = 1.):
+    def add_block_to_grid(self,
+                          block: Block,
+                          column: int,
+                          row: int,
+                          friction: float = 1.):
         """Adds a block to the game world at the grid cell centred at ('column', 'row')
 
         Parameters:
@@ -300,13 +344,17 @@ class World:
         top = row * self._cell_expanse
         bottom = (row + 1) * self._cell_expanse
 
-        shape = pymunk.Poly(self._space.static_body, [(left, top), (left, bottom), (right, bottom), (right, top)])
+        shape = pymunk.Poly(self._space.static_body, [(left, top),
+                                                      (left, bottom),
+                                                      (right, bottom),
+                                                      (right, top)])
         shape.object = block
         shape.group = 2
 
         shape.friction = friction
         shape.collision_type = self._collision_types['block']
-        shape.filter = pymunk.ShapeFilter(categories=self._thing_categories["block"])
+        shape.filter = pymunk.ShapeFilter(
+            categories=self._thing_categories["block"])
 
         block.set_shape(shape)
         self._space.add(shape)
@@ -321,7 +369,8 @@ class World:
 
             - See add_block_to_grid for other parameters
         """
-        return self.add_block_to_grid(block, *self.xy_to_grid(x, y), *args, **kwargs)
+        return self.add_block_to_grid(block, *self.xy_to_grid(x, y), *args,
+                                      **kwargs)
 
     def get_block(self, x, y):
         """(Block) Returns a block on the point ('x', 'y'), or None if there is no block there
@@ -329,7 +378,9 @@ class World:
         Note: It is technically possible for multiple blocks to overlap, in which case
               this method will return one of those. This should never happen, though.
         """
-        blocks = self._space.point_query((x, y), 0, pymunk.ShapeFilter(mask=self._thing_categories["block"]))
+        blocks = self._space.point_query(
+            (x, y), 0,
+            pymunk.ShapeFilter(mask=self._thing_categories["block"]))
 
         if blocks:
             return blocks[0].shape.object
@@ -338,8 +389,13 @@ class World:
         """Removes a block from the game world"""
         self.remove_thing(block)
 
-    def add_item(self, item: DroppedItem, x: float, y: float, size: Tuple[float, float] = (8, 8),
-                 mass: float = 2, friction: float = 1.):
+    def add_item(self,
+                 item: DroppedItem,
+                 x: float,
+                 y: float,
+                 size: Tuple[float, float] = (8, 8),
+                 mass: float = 2,
+                 friction: float = 1.):
         """Adds an item to the game world centred at the position ('x', 'y')
 
         Parameters:
@@ -349,14 +405,26 @@ class World:
             - See add_thing for other parameters
         """
 
-        self.add_thing(item, x, y, size, collision_type=self._collision_types['item'],
-                       categories=self._thing_categories["item"], mass=mass, friction=friction)
+        self.add_thing(
+            item,
+            x,
+            y,
+            size,
+            collision_type=self._collision_types['item'],
+            categories=self._thing_categories["item"],
+            mass=mass,
+            friction=friction)
 
     def remove_item(self, item: DroppedItem):
         """Removes an item from the world"""
         self.remove_thing(item)
 
-    def add_mob(self, mob: Mob, x: float, y: float, mass: float = 100, friction: float = 1.):
+    def add_mob(self,
+                mob: Mob,
+                x: float,
+                y: float,
+                mass: float = 100,
+                friction: float = 1.):
         """Adds a mob to the game world centred at the position ('x', 'y')
 
         Parameters:
@@ -365,8 +433,15 @@ class World:
             - See add_thing for other parameters
         """
 
-        self.add_thing(mob, x, y, mob.get_size(), collision_type=self._collision_types['mob'],
-                       categories=self._thing_categories["mob"], mass=mass, friction=friction)
+        self.add_thing(
+            mob,
+            x,
+            y,
+            mob.get_size(),
+            collision_type=self._collision_types['mob'],
+            categories=self._thing_categories["mob"],
+            mass=mass,
+            friction=friction)
 
     def remove_mob(self, mob: Mob):
         """Removes a mob from the world"""
@@ -374,8 +449,10 @@ class World:
 
     def get_things(self, x: float, y: float) -> [PhysicalThing]:
         """(list<PhysicalThing>) Returns all things on the point ('x', 'y')"""
-        queries = self._space.point_query((x, y), 0, pymunk.ShapeFilter(
-            mask=pymunk.ShapeFilter.ALL_MASKS ^ self._thing_categories["wall"]))
+        queries = self._space.point_query(
+            (x, y), 0,
+            pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^
+                               self._thing_categories["wall"]))
 
         return [q.shape.object for q in queries]
 
@@ -388,16 +465,27 @@ class World:
         things = self.get_things(x, y)
         return things[0] if things else None
 
-    def get_items(self, x: float, y: float, max_distance: float) -> [DroppedItem]:
+    def get_items(self, x: float, y: float,
+                  max_distance: float) -> [DroppedItem]:
         """(list<DroppedItem>) Returns all items within 'max_distance' from the point ('x', 'y')"""
-        queries = self._space.point_query((x, y), max_distance,
-                                          pymunk.ShapeFilter(mask=self._thing_categories["item"]))
+        queries = self._space.point_query(
+            (x, y), max_distance,
+            pymunk.ShapeFilter(mask=self._thing_categories["item"]))
 
         return [q.shape.object for q in queries]
 
     def get_mobs(self, x: float, y: float, max_distance: float) -> [Mob]:
         """(list<Mob>) Returns all mobs within 'max_distance' from the point ('x', 'y')"""
-        queries = self._space.point_query((x, y), max_distance,
-                                          pymunk.ShapeFilter(mask=self._thing_categories["mob"]))
+        queries = self._space.point_query(
+            (x, y), max_distance,
+            pymunk.ShapeFilter(mask=self._thing_categories["mob"]))
+
+        return [q.shape.object for q in queries]
+
+    def get_blocks(self, x: float, y: float, max_distance: float) -> [Mob]:
+        """(list<Block>) Returns all blocks within 'max_distance' from the point ('x', 'y')"""
+        queries = self._space.point_query(
+            (x, y), max_distance,
+            pymunk.ShapeFilter(mask=self._thing_categories["block"]))
 
         return [q.shape.object for q in queries]

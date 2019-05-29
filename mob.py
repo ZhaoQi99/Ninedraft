@@ -11,19 +11,20 @@ import random
 import cmath
 
 from physical_thing import DynamicThing
-
+from random import randint
 MOB_DEFAULT_TEMPO = 40
 
 BIRD_GRAVITY_FACTOR = 150
 BIRD_X_SCALE = 1.61803
 
-SHEEP_GRAVITY_FACTOR = 150
+SHEEP_GRAVITY_FACTOR = 50
 SHEEP_X_SCALE = 0.5
 
-BEE_X_SCALE = 0.3
-BEE_SWARM_DISTANCE = 8
-BEE_GRAVITY_FACTOR = 100
-BEE_Y_HEIGHT = 5.0
+BEE_X_SCALE = 2.0
+BEE_GRAVITY_FACTOR = 180
+BEE_ATACK_RATE = 0.2
+BEE_SWARM_DISTANCE = 5
+BEE_HONEY_DISTANCE = 40
 
 
 class Mob(DynamicThing):
@@ -137,18 +138,34 @@ class Bee(Mob):
     def __init__(self, mob_id, size, tempo=MOB_DEFAULT_TEMPO, max_health=20):
         super().__init__(mob_id, size, tempo=tempo, max_health=5)
 
-    def step(self, time_delta, game_data):
-        health_percentage = self._health / self._max_health
-        z = cmath.rect(self._tempo * health_percentage,
-                       random.uniform(0, 2 * cmath.pi))
-        dx, dy = z.real * BEE_X_SCALE, z.imag
-        x, y = self.get_velocity()
-        # print(x, y)
-        if self._steps % 5 == 0:
-            velocity = x + dx, y - 40.0
-        else:
-            velocity = x + dx, y
-        self.set_velocity(velocity)
+    def step(self, time_delta, game_data, players, honey_blocks):
+        if self._steps % 20 == 0:
+            if random.random() < BEE_ATACK_RATE:
+                player = players[random.randint(0, len(players) - 1)]
+                player_x, player_y = player.get_position()
+                bee_x, bee_y = self.get_position()
+                vx, vy = self.get_velocity()
+                if player_x > bee_x:
+                    vx = abs(vx) * 1.0
+                else:
+                    vx = abs(vx) * -1.0
+                if player_y > bee_y:
+                    vy = abs(vy) * 1.0
+                else:
+                    vy = abs(vy)*-1.0
+                self.set_velocity((vx, vy))
+            elif honey_blocks:
+                velocity = randint(-BEE_HONEY_DISTANCE,
+                                   BEE_HONEY_DISTANCE), randint(-BEE_HONEY_DISTANCE, BEE_HONEY_DISTANCE)
+                self.set_velocity(velocity)
+            else:
+                health_percentage = self._health / self._max_health
+                z = cmath.rect(self._tempo * health_percentage,
+                               random.uniform(0, 2 * cmath.pi))
+                dx, dy = z.real * BEE_X_SCALE, z.imag
+                x, y = self.get_velocity()
+                velocity = x + dx, y + dy - BEE_GRAVITY_FACTOR
+                self.set_velocity(velocity)
         super().step(time_delta, game_data)
 
     def use(self):

@@ -23,11 +23,13 @@ class PhysicalThing:
 
     def is_mineable(self) -> bool:
         """(bool) Returns True iff this thing is able to be mined"""
-        raise NotImplementedError("A PhysicalThing subclass must implement an is_mineable method")
+        raise NotImplementedError(
+            "A PhysicalThing subclass must implement an is_mineable method")
 
     def is_useable(self) -> bool:
         """(bool) Returns True iff this thing is able to be used"""
-        raise NotImplementedError("A PhysicalThing subclass must implement an is_useable method")
+        raise NotImplementedError(
+            "A PhysicalThing subclass must implement an is_useable method")
 
     def use(self) -> List[EffectID]:
         """Uses this thing
@@ -40,7 +42,8 @@ class PhysicalThing:
 
                     See core.py for more information
         """
-        raise NotImplementedError("A PhysicalThing subclass must implement a use method")
+        raise NotImplementedError(
+            "A PhysicalThing subclass must implement a use method")
 
     def set_shape(self, shape: pymunk.Shape):
         self._shape = shape
@@ -62,7 +65,8 @@ class PhysicalThing:
         """
 
     def __repr__(self):
-        raise NotImplementedError("A PhysicalThing subclass must implement a __repr__ method")
+        raise NotImplementedError(
+            "A PhysicalThing subclass must implement a __repr__ method")
 
 
 class DynamicThing(PhysicalThing):
@@ -113,8 +117,8 @@ class DynamicThing(PhysicalThing):
                     The (x, y) components of the new velocity
         """
         self.get_shape().body.velocity = velocity
-
-
+    def set_position(self,position: Tuple[float, float]):
+        self._shape.body.position=position
 class BoundaryWall(PhysicalThing):
     """A boundary wall to prevent movement off the edge of the game world"""
 
