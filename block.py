@@ -45,6 +45,12 @@ BREAK_TABLES = {
         "hand": (5, True),
     }
 }
+LUCK_TABLES = {
+    "dirt": ('item', ("food", "apple")),
+    "stone": ('item', ('diamond',)),
+    "wood": ('item', ('leaves',)),
+    "honey": ('item', ('leaves',))
+}
 
 
 class Block(PhysicalThing):
@@ -181,9 +187,14 @@ class LeafBlock(Block):
         """Drops an apple 30% of the time if the wrong tool was used
 
         See Block.get_drops for parameters & return"""
+        ret = [('item', (self._id,))]*4
         if not correct_item_used:
             if luck < 0.3:
-                return [('item', ('apple', ))]
+                ret.append(('item', ('apple',)))
+        else:
+            for i in range(3):
+                ret.append(('item', ('apple',)))
+        return ret
 
     def __repr__(self):
         return f"LeafBlock()"
@@ -211,11 +222,14 @@ class ResourceBlock(Block):
 
         See Block.get_drops for parameters & return"""
 
+        print(correct_item_used)
         if correct_item_used:
-            #Todo add more
-            ret = [('item', (self._id, ))] * 5
-            ret.append(('item', ("food", "apple")))
+            # Todo add more
             # Drop 5 of itself in item form
+            ret = [('item', (self._id,))] * 5
+            if luck < 0.5:
+                ret.append(LUCK_TABLES[self._id])
+            print(ret)
             return ret
 
     # The following methods have not been commented, and their comments

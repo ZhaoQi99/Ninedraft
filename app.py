@@ -109,11 +109,11 @@ def create_item(*item_id):
         if item_type == "hands":
             return HandItem("hands")
 
-        elif item_type == "dirt":
+        elif item_type == "stick":
             return BlockItem(item_type)
 
         # Task 1.4 Basic Items: Create wood & stone here
-        elif item_type in ("wood", "stone", "stick", "crafting_table", "wool", "furnace", "honey"):
+        elif item_type in ITEM_COLOURS.keys():
             return BlockItem(item_type)
 
     raise KeyError(f"No item defined for {item_id}")
