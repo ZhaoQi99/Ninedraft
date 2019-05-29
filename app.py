@@ -208,6 +208,13 @@ CRAFTING_RECIPES_2x2 = [
         ),
         Stack(create_item('crafting_table'), 1)
     ),
+    (
+        (
+            ('leaves', 'leaves'),
+            ('leaves', 'leaves')
+        ),
+        Stack(create_item('leaves'), 4)
+    )
 ]
 
 # 3x3 Crafting Recipes
@@ -269,12 +276,7 @@ SMELTING_RECIPES_1x2=[
         ),
         Stack(create_item('food',"cooked_apple"), 1)
     ),
-    (
-        (
-            ('apple',None),
-        ),
-        Stack(create_item('food',"cooked_apple"), 1)
-    ),
+
 ]
 def load_simple_world(world):
     """Loads blocks into a world
