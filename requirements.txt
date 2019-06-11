@@ -1,0 +1,4 @@
+cffi==1.12.3
+Pillow==6.0.0
+pycparser==2.19
+pymunk==5.5.0
