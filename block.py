@@ -46,7 +46,7 @@ BREAK_TABLES = {
     }
 }
 LUCK_TABLES = {
-    "dirt": ('item', ("food", "apple")),
+    "dirt": ('item', ('axe', 'wood')),
     "stone": ('item', ('diamond',)),
     "wood": ('item', ('leaves',)),
     "honey": ('item', ('leaves',))
@@ -187,7 +187,7 @@ class LeafBlock(Block):
         """Drops an apple 30% of the time if the wrong tool was used
 
         See Block.get_drops for parameters & return"""
-        ret = [('item', (self._id,))]*4
+        ret = [('item', (self._id,))]*1
         if not correct_item_used:
             if luck < 0.3:
                 ret.append(('item', ('apple',)))

@@ -161,7 +161,8 @@ BLOCK_COLOURS = {
     'furnace': 'black',
     "wool":"#FFCEEB",
     "hive":"purple",
-    "honey":"orange"
+    "honey": "orange",
+    "wood_axe":"blue"
 }
 
 ITEM_COLOURS = {
@@ -175,7 +176,8 @@ ITEM_COLOURS = {
     'furnace': 'black',
     'cooked_apple': 'red4',
     "wool":"#FFCEEB",
-    "honey":"orange"
+    "honey": "orange",
+    "wood_axe": "blue"
 }
 # 2x2 Crafting Recipes
 CRAFTING_RECIPES_2x2 = [
@@ -642,7 +644,7 @@ class Ninedraft:
                     print("Can't craft much on a 2x2 grid :/")
 
                 elif craft_type == "crafting_table":
-                    print("Let's get our kraft® on! King of the brands")
+                    print("Let's get our kraft on! King of the brands")
                 elif craft_type =="furnace":
                     print("Let's smelting by yourself")
                 self._trigger_crafting(craft_type)
