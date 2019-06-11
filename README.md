@@ -1,5 +1,4 @@
 # Ninedraft
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2e2f4192234447de91525dca2b501311)](https://app.codacy.com/app/ZhaoQi99/Ninedraft?utm_source=github.com&utm_medium=referral&utm_content=ZhaoQi99/Ninedraft&utm_campaign=Badge_Grade_Dashboard)
 [![GitHub license](https://img.shields.io/github/license/ZhaoQi99/Ninedraft.svg)](https://github.com/ZhaoQi99/Ninedraft/blob/master/LICENSE)
 
 CSSE1001 Semester 1, 2019-Assignment 3
