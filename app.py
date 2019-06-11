@@ -750,6 +750,22 @@ class Ninedraft:
         return False
 
     def _handle_player_collide_mob(self, player: Player, mob: Mob, data,arbiter: pymunk.Arbiter):
+        """Callback to handle collision between the player and a mob. If the player meet a bee,
+        the player will get 1 hit.
+
+        Parameters:
+            player (Player): The player that was involved in the collision
+            mob (Mob): The mob that the player collided with
+            data (dict): data that was added with this collision handler (see data parameter in
+                         World.add_collision_handler)
+            arbiter (pymunk.Arbiter): Data about a collision
+                                      (see http://www.pymunk.org/en/latest/pymunk.html#pymunk.Arbiter)
+                                      NOTE: you probably won't need this
+        Return:
+             bool: False (always ignore this type of collision)
+                   (more generally, collision callbacks return True iff the collision should be considered valid; i.e.
+                   returning False makes the world ignore the collision)
+        """
         if mob.get_id()=="foe_bee":
             print(f"{self._player} touch a bee,get 1 damage")
             self._player.change_health(-1)

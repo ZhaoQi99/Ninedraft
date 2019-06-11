@@ -315,6 +315,7 @@ class CraftingWindow(tk.Toplevel):
             hotbar (Grid): The hotbar to show at the bottom of the window
             inventory (Grid): The inventory to show above the hotbar, below the crafting widget
             crafter (GridCraft): The crafter that powers the crafting widget
+            mode(str): normal/smelting
         """
         super().__init__(master)
 

@@ -280,6 +280,9 @@ class TrickCandleFlameBlock(Block):
 
 
 class CraftingTableBlock(Block):
+    """A  block which indicated a craftingTable block that drops an
+    item form itself when mined
+    """
     _id = "crafting_table"
     _break_table = {
         "hand": (5, True),
@@ -296,6 +299,8 @@ class CraftingTableBlock(Block):
 
 
 class HiveBlock(Block):
+    """A  block which  drops 5 bees when mined
+    """
     _id = "hive"
     _break_table = {
         "hand": (5, True),
@@ -309,6 +314,9 @@ class HiveBlock(Block):
 
 
 class FurnaceBlock(Block):
+    """A  block which indicated a FurnaceBlock block that drops an
+    item form itself when mined
+    """
     _id = "furnace"
     _break_table = {
         "hand": (5, True),

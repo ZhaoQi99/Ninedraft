@@ -25,6 +25,7 @@ class Player(DynamicThing):
 
     def get_name(self):
         """(str)Returns the name of the player"""
+        return self._name
 
     def get_food(self):
         """(float) Returns the value of the player's food bar"""

@@ -171,11 +171,18 @@ class BlockItem(Item):
 
 
 class FoodItem(Item):
+    """An item which indicated food"""
+
     def __init__(self, id_, strength):
+        """Constructor
+        Parameters:
+            strength (int): the strength of this food
+        """
         super().__init__(id_, max_stack=4)
         self.strength = strength
 
     def get_strength(self):
+        """(int)Returns the strength of the food"""
         return self.strength
 
     def can_attack(self):
@@ -186,7 +193,14 @@ class FoodItem(Item):
 
 
 class ToolItem(Item):
+    """An item which indicated tool"""
+
     def __init__(self, id_, tool_type, durability):
+        """Constructor
+        Parameters:
+            tool_type (str): the type of this tool
+            durability (str): the durability of this tool
+        """
         super().__init__(id_, max_stack=1)
         self.tool_type = tool_type
         self.durability = durability
@@ -195,9 +209,11 @@ class ToolItem(Item):
         return bool(self.durability)
 
     def get_type(self):
+        """(str)Returns the type of the tool"""
         return self.tool_type
 
     def get_durability(self):
+        """(int)Returns the durability of the tool"""
         return self.durability
 
     def attack(self, successful):
